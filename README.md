@@ -2,9 +2,10 @@
 a express template
 
 ## Contents
-- [Integration](#-Integration)
-- [Dev](#-Dev)
-- [Deploy](#-Deploy)
+- [Integration](#Integration)
+- [Dev](#Dev)
+- [Deploy](#Deploy)
+- [Config](#Config)
 
 ## Integration
 - express-session + redis
