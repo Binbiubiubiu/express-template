@@ -29,8 +29,7 @@
     "default": {
       "appenders": [
         "app",
-        "errors",
-        "console"
+        "errors"
       ],
       "level": "DEBUG"
     },

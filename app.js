@@ -7,7 +7,7 @@ const errorhandler = require("errorhandler");
 const notifier = require("node-notifier");
 
 const config = require("./readConfig");
-const { logger } = require("./middlewares/log4j");
+const { logger, log } = require("./middlewares/log4j");
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -45,9 +45,9 @@ app.use(
         }),
         name: config["session.cookie.name"], //cookie名称
         secret: config["session.secret"], //加密key
-        resave: true, //redise cookie重写存储
-        rolling: true, //cookie重置
-        saveUninitialized: false,
+        resave: true, //session 重写,过期时间重置, (设置成false 可以让过期时间不变)
+        rolling: true, //是否同步到客户端cookie session信息
+        saveUninitialized: false, //不管是否登录访问都保存session
         cookie: {
             // path: config["session.cookie.path"],
             // domain: config["session.cookie.domain"],
@@ -63,7 +63,7 @@ app.set("views", path.join(__dirname, config["views.dir"]));
 app.set("view engine", config["views.engine"]);
 
 app.get("/", function(req, res, next) {
-    res.render("index", { title: "express template", message: "hello world" });
+    res.render("page/index", { title: "express template", message: "hello world" });
 });
 
 /**路由 */
@@ -85,7 +85,8 @@ if (!isProd) {
     app.use(errorhandler({ log: errorNotification }));
 }
 
-function errorNotification(err, str, req) {
+function errorNotification(err, str, req, res) {
+   
     var title = "Error in " + req.method + " " + req.url;
 
     notifier.notify({
@@ -96,8 +97,9 @@ function errorNotification(err, str, req) {
 
 /** 错误处理*/
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500).send(err);
+    log.error(err);
+    res.status(err.status || 500).render("error", { err: err });
 });
 
 const PORT = +config["system.port"];
-app.listen(PORT, () => console.log(` app start listen at ${PORT}`));
+app.listen(PORT, () => log.info(` app start listen at http://localhost:${PORT}`));
