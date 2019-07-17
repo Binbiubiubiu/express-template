@@ -1,0 +1,59 @@
+{
+  "name": "express-template",
+  "version": "1.0.0",
+  "description": "a express template",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start:prod": "cross-env NODE_ENV=production app.js",
+    "start:pm2": "pm2 startOrRestart ecosystem.config.js --env production",
+    "stop:pm2": "pm2 kill"
+  },
+  "private": true,
+  "keywords": [],
+  "author": "lvbin",
+  "license": "MIT",
+  "dependencies": {
+    "connect-redis": "^3.4.1",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "errhandler": "^0.0.3",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "express-session": "^1.16.2",
+    "helmet": "^3.18.0",
+    "http-errors": "^1.7.3",
+    "log4js": "^4.5.1",
+    "morgan": "^1.9.1",
+    "multer": "^1.4.1",
+    "node-notifier": "^5.4.0",
+    "pug": "^2.0.4",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {
+    "cross-env": "^5.2.0",
+    "nodemon": "^1.19.1"
+  },
+  "nodemonConfig": {
+    "restartable": "rs",
+    "ignore": [
+      ".git",
+      "node_modules/**/node_modules"
+    ],
+    "verbose": true,
+    "execMap": {
+      "js": "node --harmony"
+    },
+    "events": {
+      "restart": "osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
+    },
+    "watch": [
+      "src/**"
+    ],
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "ext": "js,json"
+  }
+}

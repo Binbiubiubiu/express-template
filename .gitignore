@@ -1,0 +1,10 @@
+#第三方
+node_modules/
+
+#运行时文件
+logs/
+uploads
+
+#日志文件
+*.log
+*.lock
