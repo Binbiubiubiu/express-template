@@ -18,7 +18,7 @@ app.set("jsonp callback name", config["system.jsonp_callback_name"]);
 /**全局中间件 */
 app.use(require("cors")());
 app.use(require("helmet")());
-app.use(require('serve-favicon')(path.join(__dirname, 'favicon.png')))
+app.use(require("serve-favicon")(path.join(__dirname, "favicon.png")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(require("cookie-parser")());
@@ -34,38 +34,37 @@ app.use(express.static(path.join(__dirname, "public")));
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 
-// app.use(
-//     session({
-//         store: new RedisStore({
-//             host: config["redis.host"],
-//             port: +config["redis.port"],
-//             pass: config["redis.pass"],
-//             db: +config["redis.db"], //存取的数据库
-//             prefix: config["redis.prefix"]
-//         }),
-//         name: config["session.cookie.name"], //cookie名称
-//         secret: config["session.secret"], //加密key
-//         resave: true, //redise cookie重写存储
-//         rolling: true, //cookie重置
-//         saveUninitialized: false,
-//         cookie: {
-//             // path: config["session.cookie.path"],
-//             // domain: config["session.cookie.domain"],
-//             httpOnly: true,
-//             secure: false,
-//             maxAge: +config["session.cookie.maxAge"]
-//         }
-//     })
-// );
+app.use(
+    session({
+        store: new RedisStore({
+            host: config["redis.host"],
+            port: +config["redis.port"],
+            pass: config["redis.pass"],
+            db: +config["redis.db"], //存取的数据库
+            prefix: config["redis.prefix"]
+        }),
+        name: config["session.cookie.name"], //cookie名称
+        secret: config["session.secret"], //加密key
+        resave: true, //redise cookie重写存储
+        rolling: true, //cookie重置
+        saveUninitialized: false,
+        cookie: {
+            // path: config["session.cookie.path"],
+            // domain: config["session.cookie.domain"],
+            httpOnly: true,
+            secure: false,
+            maxAge: +config["session.cookie.maxAge"]
+        }
+    })
+);
 
 /**模版引擎配置 */
 app.set("views", path.join(__dirname, config["views.dir"]));
 app.set("view engine", config["views.engine"]);
 
-app.get('/',function(req, res, next) {
-    res.send('hello world')
+app.get("/", function(req, res, next) {
+    res.render("index", { title: "express template", message: "hello world" });
 });
-
 
 /**路由 */
 fs.readdirSync("./routes")
