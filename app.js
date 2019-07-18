@@ -10,10 +10,10 @@ const config = require("./readConfig");
 const { logger, log } = require("./middlewares/log4j");
 
 const isProd = process.env.NODE_ENV === "production";
-
+log.info(config);
 const app = express();
 /**全局变量的设置 */
-app.set("jsonp callback name", config["system.jsonp_callback_name"]);
+app.set("jsonp callback name", `${config["SYSTEM_NAME"]}_cb`);
 
 /**全局中间件 */
 app.use(require("cors")());
@@ -37,33 +37,55 @@ const RedisStore = require("connect-redis")(session);
 app.use(
     session({
         store: new RedisStore({
-            host: config["redis.host"],
-            port: +config["redis.port"],
-            pass: config["redis.pass"],
-            db: +config["redis.db"], //存取的数据库
-            prefix: config["redis.prefix"]
+            host: config["REDIS_HOST"],
+            port: +config["REDIS_PORT"],
+            pass: config["REDIS_PASS"],
+            db: +config["REDIS_DB"], //存取的数据库
+            prefix: `${config["SYSTEM_NAME"]}_prefix:`
         }),
-        name: config["session.cookie.name"], //cookie名称
-        secret: config["session.secret"], //加密key
-        resave: true, //session 重写,过期时间重置, (设置成false 可以让过期时间不变)
-        rolling: true, //是否同步到客户端cookie session信息
-        saveUninitialized: false, //不管是否登录访问都保存session
+        name: `${config["SYSTEM_NAME"]}_s_id`, //cookie名称
+        secret: `${config["SYSTEM_NAME"]}_secret`, //加密key
+        //需要登录,以下配置
+        resave: true /*强制保存 session 即使它并没有变化,。默认为 true。建议设置成 false。*/,
+        saveUninitialized: false, //强制将未初始化的 session 存储。  默认值是true  建议设置成true
+        //不需要登录,以下配置
+        // resave: false,
+        // saveUninitialized: true,
+        rolling: true, //在每次请求时强行设置 cookie，这将重置 cookie 过期时间（默认：false）
         cookie: {
-            // path: config["session.cookie.path"],
-            // domain: config["session.cookie.domain"],
+            // path: config["SESSION_COOKIE_PATH"],
+            // domain: config["SESSION_COOKIE_DOMAIN"],
             httpOnly: true,
             secure: false,
-            maxAge: +config["session.cookie.maxAge"]
+            maxAge: +config["SESSION_COOKIE_MAXAGE"]
         }
     })
 );
 
 /**模版引擎配置 */
-app.set("views", path.join(__dirname, config["views.dir"]));
-app.set("view engine", config["views.engine"]);
+app.set("views", path.join(__dirname, config["VIEWS_DIR"]));
+app.set("view engine", config["VIEWS_ENGINE"]);
 
 app.get("/", function(req, res, next) {
-    res.render("page/index", { title: "express template", message: "hello world" });
+    res.render("index", { title: "express template", message: "hello world" });
+});
+
+app.get("/error", function(req, res, next) {
+    res.render("error", { err: error });
+});
+
+/**测试session */
+app.get("/login", function (req, res, next) {
+    req.session.userInfo = {name:'testUser'}
+    res.render("index", {});
+});
+
+/**测试销毁session */
+app.get("/loginout", function(req, res, next) {
+    req.session.destroy(function(err) {
+        console.log(err);
+    });
+    res.redirect("login");
 });
 
 /**路由 */
@@ -79,14 +101,13 @@ app.use(function(req, res, next) {
     next(createError(404, "Not Found"));
 });
 
-/**debug */
+/**debug 开发环境的错误处理 */
 if (!isProd) {
     // only use in development
     app.use(errorhandler({ log: errorNotification }));
 }
 
 function errorNotification(err, str, req, res) {
-   
     var title = "Error in " + req.method + " " + req.url;
 
     notifier.notify({
@@ -95,11 +116,13 @@ function errorNotification(err, str, req, res) {
     });
 }
 
-/** 错误处理*/
+/** 生产环境的错误处理*/
 app.use(function(err, req, res, next) {
     log.error(err);
     res.status(err.status || 500).render("error", { err: err });
 });
 
-const PORT = +config["system.port"];
-app.listen(PORT, () => log.info(` app start listen at http://localhost:${PORT}`));
+const PORT = +config["SYSTEM_PORT"];
+app.listen(PORT, () =>
+    log.info(` app start listen at http://localhost:${PORT}`)
+);
